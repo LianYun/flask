@@ -35,6 +35,8 @@ class ExtensionImporter(object):
     """This importer redirects imports from this submodule to other locations.
     This makes it possible to transition from the old flaskext.name to the
     newer flask_name without people having a hard time.
+    
+    这个importer重定向import导入的模块。
     """
 
     def __init__(self, module_choices, wrapper_module):

@@ -6,6 +6,7 @@
     Redirect imports for extensions.  This module basically makes it possible
     for us to transition from flaskext.foo to flask_foo without having to
     force all extensions to upgrade at the same time.
+    对扩展进行重定向，使得flaskext.foo 自动转化为 flask_foo。平滑应对扩展插件的升级。
 
     When a user does ``from flask.ext.foo import bar`` it will attempt to
     import ``from flask_foo import bar`` first and when that fails it will
