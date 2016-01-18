@@ -5,6 +5,7 @@
 
     Defines all the global objects that are proxies to the current
     active context.
+    定义所有全局对象，是当前活动上下文的代理。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.

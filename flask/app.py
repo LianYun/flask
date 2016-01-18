@@ -51,6 +51,7 @@ def _make_timedelta(value):
 def setupmethod(f):
     """Wraps a method so that it performs a check in debug mode if the
     first request was already handled.
+    包装一个方法，如果第一个请求已经被处理，他会执行一个bug检查。
     """
     def wrapper_func(self, *args, **kwargs):
         if self.debug and self._got_first_request:
@@ -70,13 +71,16 @@ class Flask(_PackageBoundObject):
     object.  It is passed the name of the module or package of the
     application.  Once it is created it will act as a central registry for
     the view functions, the URL rules, template configuration and much more.
+    flask对象实现了一个WSGI应用，并作为中心对象。一旦创建后将作为view函数、url规则和模板配置的注册中心。
+    
 
     The name of the package is used to resolve resources from inside the
     package or the folder the module is contained in depending on if the
     package parameter resolves to an actual python package (a folder with
-    an :file:`__init__.py` file inside) or a standard module (just a ``.py`` file).
-
+    an :file:`__init__.py` file inside) or a standard module (just a ``.py`` file).  
+    包的名字用于解析包中的资源。
     For more information about resource loading, see :func:`open_resource`.
+    可以查看`open_resource`获得更多的资源加载信息。
 
     Usually you create a :class:`Flask` instance in your main module or
     in the :file:`__init__.py` file of your package like this::
@@ -95,6 +99,7 @@ class Flask(_PackageBoundObject):
         module, `__name__` is always the correct value.  If you however are
         using a package, it's usually recommended to hardcode the name of
         your package there.
+        如果你使用一个模块，那么`__name__`总是正确的值。如果你使用一个包，那么推荐硬编码包的名字。
 
         For example if your application is defined in :file:`yourapplication/app.py`
         you should create it with one of the two versions below::
@@ -111,10 +116,14 @@ class Flask(_PackageBoundObject):
         up, that debugging information is lost.  (For example it would only
         pick up SQL queries in `yourapplication.app` and not
         `yourapplication.views.frontend`)
+        为什么可以？应用甚至可以以`__name__`启用。但这会让debug比较困难。一般的扩展可以基于你的应用导入的包做一些假设。
+        比如说在Flask-SQLAlchemy中，在debug模式下会查找你应用中引发SQL查询的代码。如果导入的名称没有设定，这些debug信息就会丢失。
+        （比如说他只能找到`yourapplication.app`中的查询，而非`yourapplication.views.frontend`的。
 
     .. versionadded:: 0.7
        The `static_url_path`, `static_folder`, and `template_folder`
        parameters were added.
+       增加了新参数。
 
     .. versionadded:: 0.8
        The `instance_path` and `instance_relative_config` parameters were
@@ -124,29 +133,36 @@ class Flask(_PackageBoundObject):
        The `root_path` parameter was added.
 
     :param import_name: the name of the application package
+                        应用包的名称。
     :param static_url_path: can be used to specify a different path for the
                             static files on the web.  Defaults to the name
                             of the `static_folder` folder.
+                            用于设定一个不同的static file路径。
     :param static_folder: the folder with static files that should be served
                           at `static_url_path`.  Defaults to the ``'static'``
                           folder in the root path of the application.
+                          这个路径应该在`static_url_path`下。注意默认值。
     :param template_folder: the folder that contains the templates that should
                             be used by the application.  Defaults to
                             ``'templates'`` folder in the root path of the
                             application.
+                            模板目录。
     :param instance_path: An alternative instance path for the application.
                           By default the folder ``'instance'`` next to the
                           package or module is assumed to be the instance
                           path.
     :param instance_relative_config: if set to ``True`` relative filenames
+      一个替代的实例路径.
                                      for loading the config are assumed to
                                      be relative to the instance path instead
                                      of the application root.
+                                     如果设定为true，将会在instance路径下加载config文件。
     :param root_path: Flask by default will automatically calculate the path
                       to the root of the application.  In certain situations
                       this cannot be achieved (for instance if the package
                       is a Python 3 namespace package) and needs to be
                       manually defined.
+                      Flask会默认地计算应用的跟路径。如果无法满足则需要指定。                ？？
     """
 
     #: The class that is used for request objects.  See :class:`~flask.Request`
@@ -162,13 +178,13 @@ class Flask(_PackageBoundObject):
     #: .. versionadded:: 0.11
     jinja_environment = Environment
 
-    #: The class that is used for the :data:`~flask.g` instance.
+    #: The class that is used for the :data:`~flask.g` instance. 用于实现`~flask.g`实例。
     #:
     #: Example use cases for a custom class:
     #:
     #: 1. Store arbitrary attributes on flask.g.
     #: 2. Add a property for lazy per-request database connectors.
-    #: 3. Return None instead of AttributeError on unexpected attributes.
+    #: 3. Return None instead of AttributeError on unexpected attributes.对于mei'you返回None而非抛出异常
     #: 4. Raise exception if an unexpected attr is set, a "controlled" flask.g.
     #:
     #: In Flask 0.9 this property was called `request_globals_class` but it

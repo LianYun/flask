@@ -4,6 +4,7 @@
     ~~~~~~~~~~~~~
 
     Implements various helpers.
+    实现了一些辅助函数。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.

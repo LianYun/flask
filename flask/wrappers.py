@@ -9,7 +9,8 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from werkzeug.wrappers import Request as RequestBase, Response as ResponseBase
+from werkzeug.wrappers import Request as RequestBase, Response as ResponseBase  
+# 首先从werkzeug中导入请求和响应对象，继承实现修改。
 from werkzeug.exceptions import BadRequest
 
 from . import json
@@ -28,31 +29,38 @@ def _get_data(req, cache):
 class Request(RequestBase):
     """The request object used by default in Flask.  Remembers the
     matched endpoint and view arguments.
+    Flask中默认的请求对象。记住匹配的endpoint和视图参数。
 
     It is what ends up as :class:`~flask.request`.  If you want to replace
     the request object used you can subclass this and set
     :attr:`~flask.Flask.request_class` to your subclass.
+    如果要自定义，可以创建这个类的子类，并且在Flask对象中替换request_class
 
     The request object is a :class:`~werkzeug.wrappers.Request` subclass and
     provides all of the attributes Werkzeug defines plus a few Flask
     specific ones.
+    这个请求对象是`~werkzeug.wrappers.Request`的子类。并且提供了所有的Werkzeug参数。
     """
 
     #: The internal URL rule that matched the request.  This can be
     #: useful to inspect which methods are allowed for the URL from
     #: a before/after handler (``request.url_rule.methods``) etc.
-    #:
+    #: 
+    #: 内部的URL规则，匹配这个request。这个可以检查那个方法可以允许访问（通过before/after Handler）
+    #: 
     #: .. versionadded:: 0.6
     url_rule = None
 
     #: A dict of view arguments that matched the request.  If an exception
     #: happened when matching, this will be ``None``.
+    # 匹配这个请求的视图参数字典。如果一个异常在匹配时发生，这个将会设定为None。
     view_args = None
 
     #: If matching the URL failed, this is the exception that will be
     #: raised / was raised as part of the request handling.  This is
     #: usually a :exc:`~werkzeug.exceptions.NotFound` exception or
     #: something similar.
+    # URL匹配失败时会抛出这个异常。
     routing_exception = None
 
     # Switched by the request context until 1.0 to opt in deprecated
@@ -61,7 +69,7 @@ class Request(RequestBase):
 
     @property
     def max_content_length(self):
-        """Read-only view of the ``MAX_CONTENT_LENGTH`` config key."""
+        """Read-only view of the `MAX_CONTENT_LENGTH` config key. 获得只读对象的包装 注意这种编程的方法。"""
         ctx = _request_ctx_stack.top
         if ctx is not None:
             return ctx.app.config['MAX_CONTENT_LENGTH']
@@ -72,6 +80,8 @@ class Request(RequestBase):
         :attr:`view_args` can be used to reconstruct the same or a
         modified URL.  If an exception happened when matching, this will
         be ``None``.
+        
+        匹配请求的endpoit。
         """
         if self.url_rule is not None:
             return self.url_rule.endpoint
@@ -81,6 +91,8 @@ class Request(RequestBase):
         """The name of the current module if the request was dispatched
         to an actual module.  This is deprecated functionality, use blueprints
         instead.
+        
+        如果这个请求被分配给真实的module，这个就是当前模块的名字。 已经废除了这个方法，应该使用blueprint代替。
         """
         from warnings import warn
         warn(DeprecationWarning('modules were deprecated in favor of '
@@ -91,7 +103,7 @@ class Request(RequestBase):
 
     @property
     def blueprint(self):
-        """The name of the current blueprint"""
+        """The name of the current blueprint 当前的blueprint"""
         if self.url_rule and '.' in self.url_rule.endpoint:
             return self.url_rule.endpoint.rsplit('.', 1)[0]
 
@@ -113,6 +125,7 @@ class Request(RequestBase):
         is considered to include JSON data if the mimetype is
         :mimetype:`application/json` or :mimetype:`application/*+json`.
 
+        标识这个请求是不是JSON。当一个请求的mimetype是``application/json`` 或者 ``application/*+json``时，请求可以包括JSON数据。
         .. versionadded:: 0.11
         """
         mt = self.mimetype
@@ -130,17 +143,19 @@ class Request(RequestBase):
         :meth:`on_json_loading_failed` method on the request object will be
         invoked.
 
+        解析收到的JSON请求，并且返回他。
+        如果解析失败，那么回调用`on_json_loading_failed` 方法。
+        应该先调用is_json检查，再做处理。
+
         :param force: if set to ``True`` the mimetype is ignored.
         :param silent: if set to ``True`` this method will fail silently
                        and return ``None``.
         :param cache: if set to ``True`` the parsed JSON data is remembered
-                      on the request.
-        """
         rv = getattr(self, '_cached_json', _missing)
         if rv is not _missing:
             return rv
 
-        if not (force or self.is_json):
+        if not (force or self.is_json):     # 没有忽略类型且不是明确的json格式。
             return None
 
         # We accept a request charset against the specification as
@@ -149,7 +164,7 @@ class Request(RequestBase):
         # and strict in what we send out.
         request_charset = self.mimetype_params.get('charset')
         try:
-            data = _get_data(self, cache)
+            data = _get_data(self, cache)   # 从请求中获取数据
             if request_charset is not None:
                 rv = json.loads(data, encoding=request_charset)
             else:
@@ -167,6 +182,7 @@ class Request(RequestBase):
         """Called if decoding of the JSON data failed.  The return value of
         this method is used by :meth:`get_json` when an error occurred.  The
         default implementation just raises a :class:`BadRequest` exception.
+        在解码json数据失败时调用。默认方法仅会抛出`BadRequest`异常。
 
         .. versionchanged:: 0.10
            Removed buggy previous behavior of generating a random JSON
