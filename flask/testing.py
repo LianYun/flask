@@ -43,6 +43,7 @@ class FlaskClient(Client):
     end of a ``with`` body when used in a ``with`` statement.  For general
     information about how to use this class refer to
     :class:`werkzeug.test.Client`.
+    和 Werkzeug 测试客户端类似，但是会在 with body 的最后清理请求上下文栈中的内容。
 
     .. versionchanged:: 0.12
        `app.test_client()` includes preset default environment, which can be
@@ -67,7 +68,7 @@ class FlaskClient(Client):
         session transaction.  This can be used to modify the session that
         the test client uses.  Once the ``with`` block is left the session is
         stored back.
-
+        当和 with 语句联合使用时，这可以改变测试客户端使用的 session 数据。with 语句结束后，结果会被存储到 session 中。
         ::
 
             with client.session_transaction() as session:
@@ -78,8 +79,11 @@ class FlaskClient(Client):
         request variables this function accepts the same arguments as
         :meth:`~flask.Flask.test_request_context` which are directly
         passed through.
+        实际上，实现是通过构建一个测试请求上下文，因为 session 可以基于请求变量来操作。
+        这个函数因而接受和 :meth:`~flask.Flask.test_request_context` 函数相同的参数。
         """
         if self.cookie_jar is None:
+            # 仅在设定 cookie 可用的情况下才可以使用 session
             raise RuntimeError('Session transactions only make sense '
                                'with cookies enabled.')
         app = self.application

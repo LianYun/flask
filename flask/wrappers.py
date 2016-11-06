@@ -29,17 +29,17 @@ def _get_data(req, cache):
 class Request(RequestBase):
     """The request object used by default in Flask.  Remembers the
     matched endpoint and view arguments.
-    Flask中默认的请求对象。记住匹配的endpoint和视图参数。
+    Flask中默认的请求对象。记住匹配的 endpoint 和视图参数。
 
     It is what ends up as :class:`~flask.request`.  If you want to replace
     the request object used you can subclass this and set
     :attr:`~flask.Flask.request_class` to your subclass.
-    如果要自定义，可以创建这个类的子类，并且在Flask对象中替换request_class
+    如果要自定义，可以创建这个类的子类，并且在 Flask 对象中替换 request_class
 
     The request object is a :class:`~werkzeug.wrappers.Request` subclass and
     provides all of the attributes Werkzeug defines plus a few Flask
     specific ones.
-    这个请求对象是`~werkzeug.wrappers.Request`的子类。并且提供了所有的Werkzeug参数。
+    这个请求对象是 `~werkzeug.wrappers.Request` 的子类。并且提供了所有的 Werkzeug 参数。
     """
 
     #: The internal URL rule that matched the request.  This can be
@@ -92,7 +92,7 @@ class Request(RequestBase):
         to an actual module.  This is deprecated functionality, use blueprints
         instead.
         
-        如果这个请求被分配给真实的module，这个就是当前模块的名字。 已经废除了这个方法，应该使用blueprint代替。
+        如果这个请求被分配给真实的module，这个就是当前模块的名字。 已经废除了这个方法，应该使用 blueprint 代替。
         """
         from warnings import warn
         warn(DeprecationWarning('modules were deprecated in favor of '
@@ -103,7 +103,7 @@ class Request(RequestBase):
 
     @property
     def blueprint(self):
-        """The name of the current blueprint 当前的blueprint"""
+        """The name of the current blueprint. 当前的 blueprint"""
         if self.url_rule and '.' in self.url_rule.endpoint:
             return self.url_rule.endpoint.rsplit('.', 1)[0]
 
@@ -112,6 +112,7 @@ class Request(RequestBase):
         """If the mimetype is :mimetype:`application/json` this will contain the
         parsed JSON data.  Otherwise this will be ``None``.
 
+        如果 mimetype 是 :mimetype:`application/json`, json 数据将会包括可以解析的 JSON 数据。
         The :meth:`get_json` method should be used instead.
         """
         from warnings import warn
@@ -125,7 +126,7 @@ class Request(RequestBase):
         is considered to include JSON data if the mimetype is
         :mimetype:`application/json` or :mimetype:`application/*+json`.
 
-        标识这个请求是不是JSON。当一个请求的mimetype是``application/json`` 或者 ``application/*+json``时，请求可以包括JSON数据。
+        标识这个请求是不是 JSON。当一个请求的 mimetype 是 ``application/json`` 或者 ``application/*+json`` 时，请求可以包括JSON数据。
         .. versionadded:: 0.11
         """
         mt = self.mimetype
@@ -145,7 +146,7 @@ class Request(RequestBase):
 
         解析收到的JSON请求，并且返回他。
         如果解析失败，那么回调用`on_json_loading_failed` 方法。
-        应该先调用is_json检查，再做处理。
+        应该先调用 is_json 检查，再做处理。
 
         :param force: if set to ``True`` the mimetype is ignored.
         :param silent: if set to ``True`` this method will fail silently
@@ -218,5 +219,6 @@ class Response(ResponseBase):
 
     If you want to replace the response object used you can subclass this and
     set :attr:`~flask.Flask.response_class` to your subclass.
+    可以通过创建这个类的子类，并将其赋值给 flask subclass 来自定义 Response
     """
     default_mimetype = 'text/html'
