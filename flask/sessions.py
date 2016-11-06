@@ -107,7 +107,9 @@ session_json_serializer = TaggedJSONSerializer()
 
 
 class SecureCookieSession(CallbackDict, SessionMixin):
-    """Base class for sessions based on signed cookies."""
+    """Base class for sessions based on signed cookies.
+    基本的 session 基类基于 登陆 cookies 来实现。
+    """
 
     def __init__(self, initial=None):
         def on_update(self):
@@ -137,11 +139,15 @@ class SessionInterface(object):
     implementation.  The only methods you have to implement are
     :meth:`open_session` and :meth:`save_session`, the others have
     useful defaults which you don't need to change.
+    如果要替代 werkzeug 的 securecookie，必须要实现的接口。需要自己实现的方法是：
+    :meth:`open_session` 和 :meth:`save_session`，其他部分默认是不需要用户改变的。
 
     The session object returned by the :meth:`open_session` method has to
     provide a dictionary like interface plus the properties and methods
     from the :class:`SessionMixin`.  We recommend just subclassing a dict
-    and adding that mixin::
+    and adding that mixin (由 :meth:`open_session` 方法返回的 session object
+    应当提供一个和字典类似的接口，扩展 :class:`SessionMixin` 的属性和方法。最简单的方法是继承
+    dict 并增加 mixin。)::
 
         class Session(dict, SessionMixin):
             pass

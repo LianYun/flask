@@ -37,7 +37,7 @@ class View(object):
     When you want to decorate a pluggable view you will have to either do that
     when the view function is created (by wrapping the return value of
     :meth:`as_view`) or you can use the :attr:`decorators` attribute::
-    当你需要装饰一个插件的视图，你需要在视图函数创建的时候或者使用 decorators属性。
+    当你需要装饰一个插件的视图，你需要在视图函数创建的时候或者使用 decorators 属性。
 
         class SecretView(View):
             methods = ['GET']
@@ -50,7 +50,8 @@ class View(object):
     when the view function is created.  Note that you can *not* use the class
     based decorators since those would decorate the view class and not the
     generated view function!
-    当视图函数创建时，装饰器中的函数会一个接一个地被调用。
+    当视图函数创建时，装饰器中的函数会一个接一个地被调用。注意不能直接使用基于类的装饰器，因为他们只是装饰
+    了视图类但是没有装饰视图函数。
     """
 
     #: 这个可插拔视图可以处理的方法.
@@ -60,7 +61,7 @@ class View(object):
     #: return value of as_view().  However since this moves parts of the
     #: logic from the class declaration to the place where it's hooked
     #: into the routing system.
-    #：一般的方式是装饰as_view函数的返回值。
+    #：一般的方式是装饰 as_view 函数的返回值。
     #:
     #: You can place one or more decorators in this list and whenever the
     #: view function is created the result is automatically decorated.
@@ -82,10 +83,12 @@ class View(object):
         with the routing system.  Internally this generates a function on the
         fly which will instantiate the :class:`View` on each request and call
         the :meth:`dispatch_request` method on it.
-        将这个类转化为一个可被路由系统使用的视图函数。
+        将这个类转化为一个可被路由系统使用的视图函数。实际上，是构建了一个函数，将会在每次请求时构建一个 View，并且调用
+        :meth:`dispatch_request` 方法。
 
         The arguments passed to :meth:`as_view` are forwarded to the
         constructor of the class.
+        参数使用 :meth:`as_view` 构建类。
         """
         def view(*args, **kwargs):
             self = view.view_class(*class_args, **class_kwargs)
