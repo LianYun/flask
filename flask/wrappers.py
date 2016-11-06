@@ -151,6 +151,7 @@ class Request(RequestBase):
         :param silent: if set to ``True`` this method will fail silently
                        and return ``None``.
         :param cache: if set to ``True`` the parsed JSON data is remembered
+        """
         rv = getattr(self, '_cached_json', _missing)
         # We return cached JSON only when the cache is enabled.
         if cache and rv is not _missing:
