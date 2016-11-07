@@ -4,6 +4,7 @@
     ~~~~~~~~~~~~~~
 
     Implements cookie based sessions based on itsdangerous.
+    使用 itsdangerous 实现了基本的基于 cookie 的 session
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
@@ -25,7 +26,7 @@ from itsdangerous import URLSafeTimedSerializer, BadSignature
 class SessionMixin(object):
     """Expands a basic dictionary with an accessors that are expected
     by Flask extensions and users for the session.
-    """
+    扩展基本的字典，增加一个访问器，使得 Flask 的扩展和 session 的使用者可以得到更多的信息"""
 
     def _get_permanent(self):
         return self.get('_permanent', False)
@@ -37,9 +38,9 @@ class SessionMixin(object):
     permanent = property(_get_permanent, _set_permanent)
     del _get_permanent, _set_permanent
 
-    #: some session backends can tell you if a session is new, but that is
-    #: not necessarily guaranteed.  Use with caution.  The default mixin
-    #: implementation just hardcodes ``False`` in.
+    #: some session backends can tell you if a session is new, but that is      一些 session 后台会告诉你 session 是新的
+    #: not necessarily guaranteed.  Use with caution.  The default mixin        但是不会保证一定是成立的，使用时应当注意。默认
+    #: implementation just hardcodes ``False`` in.                              实现只是简单地设定为 ``False`` 固定值。
     new = False
 
     #: for some backends this will always be ``True``, but some backends will
@@ -79,6 +80,7 @@ def _tag(value):
 class TaggedJSONSerializer(object):
     """A customized JSON serializer that supports a few extra types that
     we take for granted when serializing (tuples, markup objects, datetime).
+    一个自定义的 JSON 序列化器，支持元组、标记对象、时间等的序列化
     """
 
     def dumps(self, value):
@@ -126,6 +128,7 @@ class NullSession(SecureCookieSession):
     """Class used to generate nicer error messages if sessions are not
     available.  Will still allow read-only access to the empty session
     but fail on setting.
+    用于 session 不可用时，生成良好的错误信息，可以访问空的 session 但是不能够设置
     """
 
     def _fail(self, *args, **kwargs):
@@ -161,9 +164,13 @@ class SessionInterface(object):
     if the session support cannot work because some requirement is not
     fulfilled.  The default :class:`NullSession` class that is created
     will complain that the secret key was not set.
+    如果 :meth:`open_session` 返回 ``None`` Flask 将会调用 :meth:`make_null_session`
+    来创建一个 session，用于 session 因为某些必要条件不支持时的补充。默认的 :class:`NullSession`
+    将会创建一些警告来表示 secret key 没有设置的情况。
 
     To replace the session interface on an application all you have to do
-    is to assign :attr:`flask.Flask.session_interface`::
+    is to assign :attr:`flask.Flask.session_interface` 为了在应用中使用这个接口，需要给 :attr:`flask.Flask.session_interface`
+    进行赋值如下::
 
         app = Flask(__name__)
         app.session_interface = MySessionInterface()
@@ -285,6 +292,8 @@ class SessionInterface(object):
         in case the loading failed because of a configuration error or an
         instance of a session object which implements a dictionary like
         interface + the methods and attributes on :class:`SessionMixin`.
+        这个方法或者返回 ``None``，或者一个实现了字典类似的接口，并拥有 :class:`SessionMixin`
+        的全部属性和方法。
         """
         raise NotImplementedError()
 
@@ -293,6 +302,7 @@ class SessionInterface(object):
         at the end of the request.  This is still called during a request
         context so if you absolutely need access to the request you can do
         that.
+        在每个 request 结束的时候，这个方法会被调用，当然也可以访问 request 本身进行调用。
         """
         raise NotImplementedError()
 
@@ -312,8 +322,8 @@ class SecureCookieSessionInterface(SessionInterface):
     #: A python serializer for the payload.  The default is a compact
     #: JSON derived serializer with support for some extra Python types
     #: such as datetime objects or tuples.
-    serializer = session_json_serializer
-    session_class = SecureCookieSession
+    serializer = session_json_serializer        # 使用了上面给出的默认设置
+    session_class = SecureCookieSession         # 使用了上面默认的 session 实现
 
     def get_signing_serializer(self, app):
         if not app.secret_key:
@@ -335,10 +345,10 @@ class SecureCookieSessionInterface(SessionInterface):
             return self.session_class()
         max_age = total_seconds(app.permanent_session_lifetime)
         try:
-            data = s.loads(val, max_age=max_age)
-            return self.session_class(data)
+            data = s.loads(val, max_age=max_age)    # 直接从 cookie 中 loads 数据。
+            return self.session_class(data)         # 使用 loads 的数据初始化 Session
         except BadSignature:
-            return self.session_class()
+            return self.session_class()             # loads 失败也会返回空的 Session
 
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
@@ -347,8 +357,8 @@ class SecureCookieSessionInterface(SessionInterface):
         # Delete case.  If there is no session we bail early.
         # If the session was modified to be empty we remove the
         # whole cookie.
-        if not session:
-            if session.modified:
+        if not session:         # session 为空
+            if session.modified:    # session 被修改了
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
@@ -360,13 +370,13 @@ class SecureCookieSessionInterface(SessionInterface):
         # should be set or not.  This is controlled by the
         # SESSION_REFRESH_EACH_REQUEST config flag as well as
         # the permanent flag on the session itself.
-        if not self.should_set_cookie(app, session):
+        if not self.should_set_cookie(app, session):    # 不满足更新条件
             return
 
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
         val = self.get_signing_serializer(app).dumps(dict(session))
-        response.set_cookie(app.session_cookie_name, val,
+        response.set_cookie(app.session_cookie_name, val,               # 直接在响应的基础上增加 cookie 相关的内容
                             expires=expires, httponly=httponly,
                             domain=domain, path=path, secure=secure)

@@ -52,6 +52,8 @@ class JSONEncoder(_json.JSONEncoder):
     ``Markup`` objects which are serialized as RFC 822 datetime strings (same
     as the HTTP date format).  In order to support more data types override the
     :meth:`default` method.
+    扩展了默认的 simplejson, 使得其支持 ``datetime`` 对象、`UUID`` 和 ``Markup`` objects。
+    使用 RFC 822 的 HTTP 日期格式。
     """
 
     def default(self, o):
@@ -72,7 +74,7 @@ class JSONEncoder(_json.JSONEncoder):
                 return JSONEncoder.default(self, o)
         """
         if isinstance(o, date):
-            return http_date(o.timetuple())
+            return http_date(o.timetuple())     # 转换日期格式
         if isinstance(o, uuid.UUID):
             return str(o)
         if hasattr(o, '__html__'):
@@ -85,6 +87,7 @@ class JSONDecoder(_json.JSONDecoder):
     the default simplejson decoder.  Consult the :mod:`json` documentation
     for more information.  This decoder is not only used for the load
     functions of this module but also :attr:`~flask.Request`.
+    默认的 JSON decoder。这个没有改变默认的 simplejson decoder 的行为。
     """
 
 
@@ -112,17 +115,20 @@ def dumps(obj, **kwargs):
     """Serialize ``obj`` to a JSON formatted ``str`` by using the application's
     configured encoder (:attr:`~flask.Flask.json_encoder`) if there is an
     application on the stack.
+    如果在 stack 中存在一个 application 对象，使用应用配置的 encoder (:attr:`~flask.Flask.json_encoder`)
+    序列化 ``obj`` 为一个  JSON 格式的 ``str``。
 
     This function can return ``unicode`` strings or ascii-only bytestrings by
     default which coerce into unicode strings automatically.  That behavior by
     default is controlled by the ``JSON_AS_ASCII`` configuration variable
     and can be overridden by the simplejson ``ensure_ascii`` parameter.
+
     """
-    _dump_arg_defaults(kwargs)
+    _dump_arg_defaults(kwargs)                              # 设置默认参数
     encoding = kwargs.pop('encoding', None)
-    rv = _json.dumps(obj, **kwargs)
+    rv = _json.dumps(obj, **kwargs)                         # 先转化为字符串格式
     if encoding is not None and isinstance(rv, text_type):
-        rv = rv.encode(encoding)
+        rv = rv.encode(encoding)                            # 再对字符串进行编码
     return rv
 
 
@@ -161,6 +167,7 @@ def htmlsafe_dumps(obj, **kwargs):
     this is available in templates through the ``|tojson`` filter which will
     also mark the result as safe.  Due to how this function escapes certain
     characters this is safe even if used outside of ``<script>`` tags.
+    功能和 :func:`dumps` 类似，但是对于 ``<script>`` 标签是安全的
 
     The following characters are escaped in strings:
 
@@ -202,16 +209,20 @@ def jsonify(*args, **kwargs):
     also converts multiple arguments into an array or multiple keyword arguments
     into a dict.  This means that both ``jsonify(1,2,3)`` and
     ``jsonify([1,2,3])`` serialize to ``[1,2,3]``.
+    这个方法包装了 :func:`dumps`，做了一些增强，使得更加好用。将 JSON 输出为一个 :class:`~flask.Response`
+    得到了一个 :mimetype:`application/json` mimetype。便利起见，他也可以将多个参数转化为一个数组，或者多个
+    keyword 参数转化为一个字典。所以 jsonify(1, 2,3) 和 jsonify([1,2,3])都会转化为 [1, 2, 3]
 
     For clarity, the JSON serialization behavior has the following differences
     from :func:`dumps`:
 
-    1. Single argument: Passed straight through to :func:`dumps`.
+    1. Single argument: Passed straight through to :func:`dumps`.   单个参数，直接传递给 :func:`dumps`。
     2. Multiple arguments: Converted to an array before being passed to
-       :func:`dumps`.
+       :func:`dumps`. 多个参数， 在传递给 dumps 之前转化为一个数组。
     3. Multiple keyword arguments: Converted to a dict before being passed to
-       :func:`dumps`.
+       :func:`dumps`. 多个键值对，在传递给 :func:`dumps` 之前转化为一个字典。
     4. Both args and kwargs: Behavior undefined and will throw an exception.
+        同时有参数和键值参数，会抛出一个异常。
 
     Example usage::
 
@@ -241,6 +252,8 @@ def jsonify(*args, **kwargs):
     the ``JSONIFY_PRETTYPRINT_REGULAR`` config parameter is set to false.
     Compressed (not pretty) formatting currently means no indents and no
     spaces after separators.
+    如果请求中不包含 ``X-Requested-With: XMLHttpRequest`` 并设置 ``JSONIFY_PRETTYPRINT_REGULAR``
+    为 false，这个函数的响应会以良好的可打印格式展现来方便调试。压缩格式中不会包含空格和对齐。
 
     .. versionadded:: 0.2
     """
