@@ -83,6 +83,8 @@ def copy_current_request_context(f):
     request context.  This is useful when working with greenlets.  The moment
     the function is decorated a copy of the request context is created and
     then pushed when the function is called.
+    一个可以装饰函数可以保持住当前请求上下文。这在使用 greenlets 时非常有用。在函数被装饰的时候，
+    一个请求的上下文对象呗创建，当函数被调用时，这个上下文对象会被 push 出来。
 
     Example::
 
@@ -96,7 +98,7 @@ def copy_current_request_context(f):
                 # do some work here, it can access flask.request like you
                 # would otherwise in the view function.
                 ...
-            gevent.spawn(do_some_work)
+            gevent.spawn(do_some_work)   # 此处可以异步地执行一些请求对象。
             return 'Regular response'
 
     .. versionadded:: 0.10
@@ -118,6 +120,7 @@ def has_request_context():
     not this function can be used.  For instance, you may want to take advantage
     of request information if the request object is available, but fail
     silently if it is unavailable.
+    如果你需要测试一个请求上下文是否存在，这个函数可以使用。
 
     ::
 
@@ -149,6 +152,7 @@ def has_app_context():
     """Works like :func:`has_request_context` but for the application
     context.  You can also just do a boolean check on the
     :data:`current_app` object instead.
+    和 current_app 是否存在是一致的。
 
     .. versionadded:: 0.9
     """
@@ -162,6 +166,9 @@ class AppContext(object):
     context is also implicitly created if a request context is created
     but the application is not on top of the individual application
     context.
+    应用上下文将应用对象绑定到当前的县线程或者 greenlet 中，和 :class:`RequestContext`
+    类似，但是绑定的应用上下文信息。如果在创建 request context 时没有 app context，那么 app context
+    会被自动创建。
     """
 
     def __init__(self, app):
@@ -174,10 +181,11 @@ class AppContext(object):
         self._refcnt = 0
 
     def push(self):
-        """Binds the app context to the current context."""
-        self._refcnt += 1
+        """Binds the app context to the current context. 将自己绑定到当前的上下文中。
+        """
+        self._refcnt += 1                   # 每 push 一次，引用 +1
         if hasattr(sys, 'exc_clear'):
-            sys.exc_clear()
+            sys.exc_clear()                 # 清除当前线程的异常信息
         _app_ctx_stack.push(self)
         appcontext_pushed.send(self.app)
 
@@ -188,7 +196,7 @@ class AppContext(object):
             if self._refcnt <= 0:
                 if exc is _sentinel:
                     exc = sys.exc_info()[1]
-                self.app.do_teardown_appcontext(exc)
+                self.app.do_teardown_appcontext(exc)    # 这个 app 进行关闭上下文
         finally:
             rv = _app_ctx_stack.pop()
         assert rv is self, 'Popped wrong app context.  (%r instead of %r)' \
@@ -211,14 +219,21 @@ class RequestContext(object):
     created at the beginning of the request and pushed to the
     `_request_ctx_stack` and removed at the end of it.  It will create the
     URL adapter and request object for the WSGI environment provided.
+    request 上下文包括所有 request 相关的信息。他在每个 request 开始时创建，并压入到
+    `_request_ctx_stack` 并且在请求结束时关闭。他将会创建 URL adapter 和 request 对象
+    提供给 WSGI 环境。
 
     Do not attempt to use this class directly, instead use
     :meth:`~flask.Flask.test_request_context` and
     :meth:`~flask.Flask.request_context` to create this object.
+    不要直接使用这个类，而是使用 :meth:`~flask.Flask.test_request_context`
+    和 :meth:`~flask.Flask.request_context` 来创建这个对象。
 
     When the request context is popped, it will evaluate all the
     functions registered on the application for teardown execution
     (:meth:`~flask.Flask.teardown_request`).
+    当请求上下文被 pop 后，他将会求值所有注册在 application 上的 teardown 函数。(:meth:`~flask.Flask.teardown_request`).
+
 
     The request context is automatically popped at the end of the request
     for you.  In debug mode the request context is kept around if
@@ -229,11 +244,14 @@ class RequestContext(object):
     context will not pop itself at the end of the request.  This is used by
     the :meth:`~flask.Flask.test_client` for example to implement the
     deferred cleanup functionality.
+    在 debug 时，需要 request context 延迟进行清理，以定位错误。
+    这时候可以使用 flask.test_client
 
     You might find this helpful for unittests where you need the
     information from the context local around for a little longer.  Make
     sure to properly :meth:`~werkzeug.LocalStack.pop` the stack yourself in
     that situation, otherwise your unittests will leak memory.
+    注意，在使用 unittest 时避免内存泄露。
     """
 
     def __init__(self, app, environ, request=None):
@@ -245,21 +263,21 @@ class RequestContext(object):
         self.flashes = None
         self.session = None
 
-        # Request contexts can be pushed multiple times and interleaved with
-        # other request contexts.  Now only if the last level is popped we
-        # get rid of them.  Additionally if an application context is missing
+        # Request contexts can be pushed multiple times and interleaved with | request context 可以被多次压入到栈中，并混杂在其它的 request 上下文中。
+        # other request contexts.  Now only if the last level is popped we      | 只有当其最后的 pop 掉时，我们才不再需要他们。
+        # get rid of them.  Additionally if an application context is missing   | 此外，如果应用上下文丢失，会隐式地创建一个新的。
         # one is created implicitly so for each level we add this information
         self._implicit_app_ctx_stack = []
 
-        # indicator if the context was preserved.  Next time another context
+        # indicator if the context was preserved.  Next time another context    | 指示 上下文是否可以保存。否则下一个上下文被压入栈时，目前的上下文会被弹出。
         # is pushed the preserved context is popped.
         self.preserved = False
 
-        # remembers the exception for pop if there is one in case the context
+        # remembers the exception for pop if there is one in case the context   | 记住异常
         # preservation kicks in.
         self._preserved_exc = None
 
-        # Functions that should be executed after the request on the response
+        # Functions that should be executed after the request on the response   | 请求结束时要调用的函数
         # object.  These will be called before the regular "after_request"
         # functions.
         self._after_request_functions = []

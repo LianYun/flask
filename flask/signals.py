@@ -5,6 +5,7 @@
 
     Implements signals based on blinker if available, otherwise
     falls silently back to a noop.
+    基于 blinker 来实现信号系统，如果失败，则返回一个收到任意信号都会抛出异常的伪信号。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
@@ -23,6 +24,8 @@ except ImportError:
         interface that allows sending of signals but will fail with an
         error on anything else.  Instead of doing anything on send, it
         will just ignore the arguments and do nothing instead.
+        如果 blinker 不可用，创建一个 fake class，其拥有相同的接口，可以接受所
+        有的信号，但都会抛出一个异常。收到发送请求时，一般是什么都不做。
         """
 
         def __init__(self, name, doc=None):
