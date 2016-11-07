@@ -55,6 +55,8 @@ def after_this_request(f):
     """Executes a function after this request.  This is useful to modify
     response objects.  The function is passed the response object and has
     to return the same or a new one.
+    在这个请求之后运行函数。这在修改响应对象时非常有用。会将响应对象传递给这个函数，
+    这个函数处理后将会返回一个新的或者相同的响应对象。
 
     Example::
 
