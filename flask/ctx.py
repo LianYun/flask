@@ -297,6 +297,8 @@ class RequestContext(object):
         Because the actual request object is the same this cannot be used to
         move a request context to a different thread unless access to the
         request object is locked.
+        复制请求环境，用于将一个请求上下文移动到一个不同的 greenlet 中。因为真实的请求对象是相同的
+        所以如果没有进行加锁，不能够从一个线程移动到另一个线程。
 
         .. versionadded:: 0.10
         """
@@ -308,6 +310,7 @@ class RequestContext(object):
     def match_request(self):
         """Can be overridden by a subclass to hook into the matching
         of the request.
+        可以由子类作为一个钩子进行覆盖，匹配请求。
         """
         try:
             url_rule, self.request.view_args = \
@@ -317,12 +320,12 @@ class RequestContext(object):
             self.request.routing_exception = e
 
     def push(self):
-        """Binds the request context to the current context."""
+        """Binds the request context to the current context. 将请求上下文绑定到当前的上下文中。"""
         # If an exception occurs in debug mode or if context preservation is
-        # activated under exception situations exactly one context stays
-        # on the stack.  The rationale is that you want to access that
-        # information under debug situations.  However if someone forgets to
-        # pop that context again we want to make sure that on the next push
+        # activated under exception situations exactly one context stays    当使用了 preservation 设置或者处于 debug 模式时
+        # on the stack.  The rationale is that you want to access that      发生的 exception 会做为一个 stack 中的上下文。
+        # information under debug situations.  However if someone forgets to    在调试时可能需要访问这些信息。如果忘记 pop，应该保证下次push
+        # pop that context again we want to make sure that on the next push     时，他是无效的，否则就有可能出现内存泄露
         # it's invalidated, otherwise we run at risk that something leaks
         # memory.  This is usually only a problem in test suite since this
         # functionality is not active in production environments.
@@ -330,24 +333,24 @@ class RequestContext(object):
         if top is not None and top.preserved:
             top.pop(top._preserved_exc)
 
-        # Before we push the request context we have to ensure that there
+        # Before we push the request context we have to ensure that there   如果在 push request context 时没有应用上下文会自动创建。
         # is an application context.
         app_ctx = _app_ctx_stack.top
-        if app_ctx is None or app_ctx.app != self.app:
+        if app_ctx is None or app_ctx.app != self.app:      # 如果当前 app_ctx_stack 中没有 app 或者 top ctx 中的 app 不是请求对应的 ctx 中，将当前的 ctx (重新)入栈。
             app_ctx = self.app.app_context()
             app_ctx.push()
             self._implicit_app_ctx_stack.append(app_ctx)
         else:
-            self._implicit_app_ctx_stack.append(None)
+            self._implicit_app_ctx_stack.append(None)       # 如果还是当前 request 对应的 app_ctx 在栈顶，压入一个  None。
 
         if hasattr(sys, 'exc_clear'):
             sys.exc_clear()
 
         _request_ctx_stack.push(self)
 
-        # Open the session at the moment that the request context is
-        # available. This allows a custom open_session method to use the
-        # request context (e.g. code that access database information
+        # Open the session at the moment that the request context is        当 request 上下文可用时，打开 session。
+        # available. This allows a custom open_session method to use the    这允许自定义一个 open_session 方法来使用 请求上下文。
+        # request context (e.g. code that access database information       比如访问数据的代码替代 app_context 中的 g。
         # stored on `g` instead of the appcontext).
         self.session = self.app.open_session(self.request)
         if self.session is None:
@@ -357,6 +360,8 @@ class RequestContext(object):
         """Pops the request context and unbinds it by doing that.  This will
         also trigger the execution of functions registered by the
         :meth:`~flask.Flask.teardown_request` decorator.
+        将请求上下文对象出栈解除绑定。同时也会触发 `~flask.Flask.teardown_request`
+        装饰器注册过的函数的调用。
 
         .. versionchanged:: 0.9
            Added the `exc` argument.
@@ -372,14 +377,14 @@ class RequestContext(object):
                     exc = sys.exc_info()[1]
                 self.app.do_teardown_request(exc)
 
-                # If this interpreter supports clearing the exception information
-                # we do that now.  This will only go into effect on Python 2.x,
+                # If this interpreter supports clearing the exception information   如果需要清除异常信息，则马上做。
+                # we do that now.  This will only go into effect on Python 2.x,     这只会在 Python 2.x 下起作用。
                 # on 3.x it disappears automatically at the end of the exception
                 # stack.
                 if hasattr(sys, 'exc_clear'):
                     sys.exc_clear()
 
-                request_close = getattr(self.request, 'close', None)
+                request_close = getattr(self.request, 'close', None)        # 按需调用 request 的 close 方法。
                 if request_close is not None:
                     request_close()
                 clear_request = True
@@ -412,8 +417,8 @@ class RequestContext(object):
 
     def __exit__(self, exc_type, exc_value, tb):
         # do not pop the request stack if we are in debug mode and an
-        # exception happened.  This will allow the debugger to still
-        # access the request object in the interactive shell.  Furthermore
+        # exception happened.  This will allow the debugger to still        允许 debugger 在 交互的 shell 中访问 request 对象
+        # access the request object in the interactive shell.  Furthermore  上下文也可以为 test_client 保持可用。
         # the context can be force kept alive for the test client.
         # See flask.testing for how this works.
         self.auto_pop(exc_value)

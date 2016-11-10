@@ -4,6 +4,7 @@
     ~~~~~~~~~
 
     A simple command line application to run flask apps.
+    一个运行 flask 应用的简单命令行应用。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.

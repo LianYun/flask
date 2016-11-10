@@ -5,6 +5,7 @@
 
     Blueprints are the recommended way to implement larger or more
     pluggable applications in Flask 0.7 and later.
+    蓝图是实现大型或者更加可组装性的应用的推荐方式。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
