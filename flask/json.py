@@ -4,6 +4,7 @@
     ~~~~~~~~~~~~~~
 
     Implementation helpers for the JSON support in Flask.
+    在 Flask 中实现 JSON 的支持。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
