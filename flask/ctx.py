@@ -4,6 +4,7 @@
     ~~~~~~~~~
 
     Implements the objects required to keep the context.
+    实现对象以保持上下文内容
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
@@ -192,7 +193,7 @@ class AppContext(object):
     def pop(self, exc=_sentinel):
         """Pops the app context."""
         try:
-            self._refcnt -= 1
+            self._refcnt -= 1               # 每次 pop 引用计数减去 1ß
             if self._refcnt <= 0:
                 if exc is _sentinel:
                     exc = sys.exc_info()[1]
