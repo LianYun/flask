@@ -4,6 +4,7 @@
     ~~~~~~~~~~~~~
 
     Implements the logging support for Flask.
+    实现了 Flask 中的 logging  支持。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
@@ -33,6 +34,8 @@ def _proxy_stream():
     """Finds the most appropriate error stream for the application.  If a
     WSGI request is in flight we log to wsgi.errors, otherwise this resolves
     to sys.stderr.
+    找到最合适的应用于应用的错误流。如果一个 WSGI 请求，如果一个 WSGI 请求在上下文中，我们
+    将记录到 wsgi.errors 中，否则解析到 sys.stderr
     """
     ctx = _request_ctx_stack.top
     if ctx is not None:
@@ -53,6 +56,10 @@ def create_logger(app):
     level based on the application's debug flag.  Furthermore this
     function also removes all attached handlers in case there was a
     logger with the log name before.
+
+    给给定的 app 创建一个 logger。这个 logger 和正常的 Python logger 类似，但是
+    会根据应用的调试标记改变日志记录的级别。这个函数也会移除所有相关的 handlers，避
+    免已经有一个 logger 有相同的名字。
     """
     Logger = getLoggerClass()
 
