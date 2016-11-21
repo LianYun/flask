@@ -51,6 +51,7 @@ _missing = object()
 # what separators does this operating system provide that are not a slash?
 # this is used by the send_from_directory function to ensure that nobody is
 # able to access files from outside the filesystem.
+# 这个操作系统的文件分隔符
 _os_alt_seps = list(sep for sep in [os.path.sep, os.path.altsep]
                     if sep not in (None, '/'))
 
@@ -65,6 +66,7 @@ def get_debug_flag(default=None):
 def _endpoint_from_view_func(view_func):
     """Internal helper that returns the default endpoint for a given
     function.  This always is the function name.
+    view_func => endpoint
     """
     assert view_func is not None, 'expected view func if endpoint ' \
                                   'is not provided.'
@@ -77,6 +79,9 @@ def stream_with_context(generator_or_function):
     memory leaks with badly written WSGI middlewares.  The downside is that if
     you are using streamed responses, the generator cannot access request bound
     information any more.
+    请求上下文会在服务器创建 response 时自动删除。一些实现的比较差的 WSGI 中间件可能会导致
+    内存泄露，这个函数的使用会降低这种情况的可能性。这个函数会导致生成器不能够再访问任何请求
+    的信息边界。
 
     This function however can help you keep the context around for longer::
 
@@ -120,13 +125,14 @@ def stream_with_context(generator_or_function):
                 'there was no context in the first place to keep around.')
         with ctx:
             # Dummy sentinel.  Has to be inside the context block or we're
-            # not actually keeping the context around.
+            # not actually keeping the context around. 无用的占位符。
             yield None
 
             # The try/finally is here so that if someone passes a WSGI level
             # iterator in we're still running the cleanup logic.  Generators
             # don't need that because they are closed on their destruction
             # automatically.
+            # 如果传入一个 WSGI 层级的迭代器，仍然可以从逻辑层次完成清理。
             try:
                 for item in gen:
                     yield item
@@ -149,6 +155,8 @@ def make_response(*args):
     is converted into a response object by Flask itself, it becomes tricky to
     add headers to it.  This function can be called instead of using a return
     and you will get a response object which you can use to attach headers.
+    有时候在视图中设定更多的 headers 是有必要的。因为 view 不一定会返回一个响应对象，Flask 应该
+    可以对 view 返回的结果进行处理，转化为对应的对象。
 
     If view looked like this and you want to add a new header::
 
@@ -164,7 +172,7 @@ def make_response(*args):
 
     This function accepts the very same arguments you can return from a
     view function.  This for example creates a response with a 404 error
-    code::
+    code 这个函数可以接受一个由 view 函数返回的值::
 
         response = make_response(render_template('not_found.html'), 404)
 
@@ -177,9 +185,9 @@ def make_response(*args):
 
     Internally this function does the following things:
 
-    -   if no arguments are passed, it creates a new response argument
-    -   if one argument is passed, :meth:`flask.Flask.make_response`
-        is invoked with it.
+    -   if no arguments are passed, it creates a new response argument 如果没有参数传入，则创建一个响应参数
+    -   if one argument is passed, :meth:`flask.Flask.make_response`    如果一个 response 被传入了，使用
+        is invoked with it. :meth:`flask.Flask.make_response` 进行包装。
     -   if more than one argument is passed, the arguments are passed
         to the :meth:`flask.Flask.make_response` function as tuple.
 
@@ -194,12 +202,15 @@ def make_response(*args):
 
 def url_for(endpoint, **values):
     """Generates a URL to the given endpoint with the method provided.
+    从给定的 endpoint 产生一个 URL。
 
     Variable arguments that are unknown to the target endpoint are appended
     to the generated URL as query arguments.  If the value of a query argument
     is ``None``, the whole pair is skipped.  In case blueprints are active
     you can shortcut references to the same blueprint by prefixing the
     local endpoint with a dot (``.``).
+    对目标 endpoint 不匹配的参数变量会作为 URL 的查询参数附加到后面。如果一个查询参数的值为 None
+    那么会跳过这个参数对。相同的 blueprint 可以简单地使用 . 替代。
 
     This will reference the index function local to the current blueprint::
 
@@ -638,6 +649,7 @@ def send_from_directory(directory, filename, **options):
     """Send a file from a given directory with :func:`send_file`.  This
     is a secure way to quickly expose static files from an upload folder
     or something similar.
+    使用 send_file 发送一个指定文件夹下的文件。这是导出静态文件和上传目录等内容的安全方式。
 
     Example usage::
 
@@ -652,6 +664,9 @@ def send_from_directory(directory, filename, **options):
        your webserver or (if no authentication happens) to tell the webserver
        to serve files for the given path on its own without calling into the
        web application for improved performance.
+
+       如果不需要验证，强烈推荐在 web 服务器上激活 ``X-Sendfile`` 的支持。使得 webserver 可以
+       直接从指定路径获取文件，不需要访问 web 应用本身，这样可以提升性能。
 
     .. versionadded:: 0.5
 
@@ -884,15 +899,19 @@ class _PackageBoundObject(object):
 
     def get_send_file_max_age(self, filename):
         """Provides default cache_timeout for the :func:`send_file` functions.
+        给 send_file 函数提供 cache_timeout
 
         By default, this function returns ``SEND_FILE_MAX_AGE_DEFAULT`` from
-        the configuration of :data:`~flask.current_app`.
+        the configuration of :data:`~flask.current_app`.默认给出配置选项
 
         Static file functions such as :func:`send_from_directory` use this
         function, and :func:`send_file` calls this function on
         :data:`~flask.current_app` when the given cache_timeout is ``None``. If a
         cache_timeout is given in :func:`send_file`, that timeout is used;
         otherwise, this method is called.
+        静态文件函数，如 :func:`send_from_directory` 使用这个函数，当
+
+
 
         This allows subclasses to change the behavior when sending files based
         on the filename.  For example, to set the cache timeout for .js files
@@ -924,7 +943,8 @@ class _PackageBoundObject(object):
 
     def open_resource(self, resource, mode='rb'):
         """Opens a resource from the application's resource folder.  To see
-        how this works, consider the following folder structure::
+        how this works, consider the following folder structure
+        从应用的资源文件夹下打开一个资源。::
 
             /myapplication.py
             /schema.sql
