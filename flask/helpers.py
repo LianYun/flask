@@ -74,7 +74,7 @@ def _endpoint_from_view_func(view_func):
 
 
 def stream_with_context(generator_or_function):
-    """Request contexts disappear when the response is started on the server.
+    """Request contexts disappear when the response is started on the server.               #### 没看懂 $$$
     This is done for efficiency reasons and to make it less likely to encounter
     memory leaks with badly written WSGI middlewares.  The downside is that if
     you are using streamed responses, the generator cannot access request bound
@@ -562,7 +562,7 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
             mtime = os.path.getmtime(filename)
             fsize = os.path.getsize(filename)
             headers['Content-Length'] = fsize
-        data = wrap_file(request.environ, file)
+        data = wrap_file(request.environ, file)     # 感觉是将文件封装到一个流中。 参见 Werkzeug 中具体的实现
 
     rv = current_app.response_class(data, mimetype=mimetype, headers=headers,
                                     direct_passthrough=True)
@@ -617,6 +617,7 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
 def safe_join(directory, *pathnames):
     """Safely join `directory` and zero or more untrusted `pathnames`
     components.
+    安全地将不信任的参数连接到目录结构。
 
     Example usage::
 
@@ -626,8 +627,8 @@ def safe_join(directory, *pathnames):
             with open(filename, 'rb') as fd:
                 content = fd.read()  # Read and process the file content...
 
-    :param directory: the trusted base directory.
-    :param pathnames: the untrusted pathnames relative to that directory.
+    :param directory: the trusted base directory.   信任的基路径。
+    :param pathnames: the untrusted pathnames relative to that directory.   非信任的相对路径。
     :raises: :class:`~werkzeug.exceptions.NotFound` if one or more passed
             paths fall out of its boundaries.
     """
