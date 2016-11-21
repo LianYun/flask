@@ -51,7 +51,7 @@ def _make_timedelta(value):
 def setupmethod(f):
     """Wraps a method so that it performs a check in debug mode if the
     first request was already handled.
-    包装一个方法，如果第一个请求已经被处理，他会执行一个bug检查。
+    包装一个方法，如果第一个请求已经被处理，他会执行一个 debug 模态的检查。
     """
     def wrapper_func(self, *args, **kwargs):
         if self.debug and self._got_first_request:
@@ -979,6 +979,9 @@ class Flask(_PackageBoundObject):
         decorator.  If a view_func is provided it will be registered with the
         endpoint.
 
+        url_map: url => endpoint
+        view_func: endpoint => function
+
         Basically this example::
 
             @app.route('/')
@@ -1038,7 +1041,7 @@ class Flask(_PackageBoundObject):
                             'for example: @app.route(..., methods=["POST"])')
         methods = set(item.upper() for item in methods)
 
-        # Methods that should always be added
+        # Methods that should always be added view_func 还可以增加 required_methods
         required_methods = set(getattr(view_func, 'required_methods', ()))
 
         # starting with Flask 0.8 the view_func object can disable and
