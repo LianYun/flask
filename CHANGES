@@ -3,8 +3,31 @@ Flask Changelog
 
 Here you can see the full list of changes between each Flask release.
 
+Version 0.13
+------------
+
+Major release, unreleased
+
+- Make `app.run()` into a noop if a Flask application is run from the
+  development server on the command line.  This avoids some behavior that
+  was confusing to debug for newcomers.
+
+Version 0.12.1
+--------------
+
+Bugfix release, unreleased
+
+- Prevent `flask run` from showing a NoAppException when an ImportError occurs
+  within the imported application module.
+- Fix encoding behavior of ``app.config.from_pyfile`` for Python 3. Fix
+  ``#2118``.
+- Use the``SERVER_NAME`` config if it is present as default values for
+  ``app.run``. ``#2109``, ``#2152``
+
 Version 0.12
 ------------
+
+Released on December 21st 2016, codename Punsch.
 
 - the cli command now responds to `--version`.
 - Mimetype guessing and ETag generation for file-like objects in ``send_file``

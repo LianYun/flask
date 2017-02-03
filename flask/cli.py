@@ -90,10 +90,16 @@ def locate_app(app_id):
     try:
         __import__(module)
     except ImportError:
-        raise NoAppException('The file/path provided (%s) does not appear to '
-                             'exist.  Please verify the path is correct.  If '
-                             'app is not on PYTHONPATH, ensure the extension '
-                             'is .py' % module)
+        # Reraise the ImportError if it occurred within the imported module.
+        # Determine this by checking whether the trace has a depth > 1.
+        if sys.exc_info()[-1].tb_next:
+            raise
+        else:
+            raise NoAppException('The file/path provided (%s) does not appear'
+                                 ' to exist.  Please verify the path is '
+                                 'correct.  If app is not on PYTHONPATH, '
+                                 'ensure the extension is .py' % module)
+
     mod = sys.modules[module]
     if app_obj is None:
         app = find_best_app(mod)
@@ -406,6 +412,13 @@ def run_command(info, host, port, reload, debugger, eager_loading,
     Flask is enabled and disabled otherwise.
     """
     from werkzeug.serving import run_simple
+
+    # Set a global flag that indicates that we were invoked from the
+    # command line interface provided server command.  This is detected
+    # by Flask.run to make the call into a no-op.  This is necessary to
+    # avoid ugly errors when the script that is loaded here also attempts
+    # to start a server.
+    os.environ['FLASK_RUN_FROM_CLI_SERVER'] = '1'
 
     debug = get_debug_flag()
     if reload is None:

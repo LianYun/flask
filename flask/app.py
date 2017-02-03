@@ -840,15 +840,22 @@ class Flask(_PackageBoundObject):
                         :func:`werkzeug.serving.run_simple` for more
                         information.
         """
+        # Change this into a no-op if the server is invoked from the
+        # command line.  Have a look at cli.py for more information.
+        if os.environ.get('FLASK_RUN_FROM_CLI_SERVER') == '1':
+            from .debughelpers import explain_ignored_app_run
+            explain_ignored_app_run()
+            return
+
         from werkzeug.serving import run_simple
-        if host is None:
-            host = '127.0.0.1'
-        if port is None:
-            server_name = self.config['SERVER_NAME']
-            if server_name and ':' in server_name:
-                port = int(server_name.rsplit(':', 1)[1])
-            else:
-                port = 5000
+        _host = '127.0.0.1'
+        _port = 5000
+        server_name = self.config.get("SERVER_NAME")
+        sn_host, sn_port = None, None
+        if server_name:
+            sn_host, _, sn_port = server_name.partition(':')
+        host = host or sn_host or _host
+        port = int(port or sn_port or _port)
         if debug is not None:
             self.debug = bool(debug)
         options.setdefault('use_reloader', self.debug)
