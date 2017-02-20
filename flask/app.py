@@ -35,10 +35,10 @@ from .signals import request_started, request_finished, got_request_exception, \
      request_tearing_down, appcontext_tearing_down
 from ._compat import reraise, string_types, text_type, integer_types
 
-# a lock used for logger initialization
+# a lock used for logger initialization 用于日志初始化的锁
 _logger_lock = Lock()
 
-# a singleton sentinel value for parameter defaults
+# a singleton sentinel value for parameter defaults 作为默认参数的单例对象
 _sentinel = object()
 
 
@@ -71,7 +71,7 @@ class Flask(_PackageBoundObject):
     object.  It is passed the name of the module or package of the
     application.  Once it is created it will act as a central registry for
     the view functions, the URL rules, template configuration and much more.
-    flask对象实现了一个WSGI应用，并作为中心对象。一旦创建后将作为view函数、url规则和模板配置的注册中心。
+    Flask对象实现了一个WSGI应用，并作为中心对象。一旦创建后将作为view函数、url规则和模板配置的注册中心。
     
 
     The name of the package is used to resolve resources from inside the
@@ -659,6 +659,8 @@ class Flask(_PackageBoundObject):
         of Flask (there named `instance_relative_config`) and indicates if
         the config should be relative to the instance path or the root path
         of the application.
+        由 Flask 构造器使用，创建配置属性，`instance_relative` 参数由 flask 的构造器
+        传入，表明了配置相对于 instance 目录以及 root 目录的值。
 
         .. versionadded:: 0.8
         """
@@ -685,10 +687,13 @@ class Flask(_PackageBoundObject):
         (:attr:`instance_path`).  Otherwise works like
         :meth:`open_resource`.  Instance resources can also be opened for
         writing.
+        打开配置在应用的 instance 目录的资源。
 
         :param resource: the name of the resource.  To access resources within
                          subfolders use forward slashes as separator.
+                         资源的名称，如果使用子目录，请使用 forward slashes 进行分隔。
         :param mode: resource file opening mode, default is 'rb'.
+                     资源默认使用 'rb' 模式打开。
         """
         return open(os.path.join(self.instance_path, resource), mode)
 
@@ -1326,9 +1331,11 @@ class Flask(_PackageBoundObject):
     def before_first_request(self, f):
         """Registers a function to be run before the first request to this
         instance of the application.
+        应用第一次处理请求前会调用使用这个函数注册的函数。
 
         The function will be called without any arguments and its return
         value is ignored.
+        所有的函数会以无参的形式调用，返回值会被忽略。
 
         .. versionadded:: 0.8
         """
@@ -1342,9 +1349,12 @@ class Flask(_PackageBoundObject):
         Your function must take one parameter, an instance of
         :attr:`response_class` and return a new response object or the
         same (see :meth:`process_response`).
+        函数必须包括一个参数，是 `response_class` 的实例，并返回一个新的 response 对象
+        实例。
 
         As of Flask 0.7 this function might not be executed at the end of the
         request in case an unhandled exception occurred.
+        如果没有捕获的异常被抛出，这个函数可能被跳过。
         """
         self.after_request_funcs.setdefault(None, []).append(f)
         return f
@@ -1355,6 +1365,7 @@ class Flask(_PackageBoundObject):
         regardless of whether there was an exception or not.  These functions
         are executed when the request context is popped, even if not an
         actual request was performed.
+        注册一个函数，其会在每次请求结束时调用，是否会发生异常不会影响这个函数的调用。
 
         Example::
 
@@ -1627,11 +1638,13 @@ class Flask(_PackageBoundObject):
         """Dispatches the request and on top of that performs request
         pre and postprocessing as well as HTTP exception catching and
         error handling.
+        分配请求, 是请求处理前后的顶层，并捕获和处理异常。
 
         .. versionadded:: 0.7
         """
         self.try_trigger_before_first_request_functions()
         try:
+            # 发送信号
             request_started.send(self)
             rv = self.preprocess_request()
             if rv is None:
@@ -1645,11 +1658,14 @@ class Flask(_PackageBoundObject):
         the request by converting it into a response and invoking the
         postprocessing functions.  This is invoked for both normal
         request dispatching as well as error handlers.
+        该函数接受一个 view 函数的返回，并将其封装为一个  response 对象，然后调用
+        请求后的钩子函数。通常的请求返回和错误处理都会调用这些错误处理函数。
 
         Because this means that it might be called as a result of a
         failure a special safe mode is available which can be enabled
         with the `from_error_handler` flag.  If enabled, failures in
         response processing will be logged and otherwise ignored.
+        使用 from_error_handler 标志来判断是否处理 process_response 抛出的异常。
 
         :internal:
         """
@@ -1668,6 +1684,9 @@ class Flask(_PackageBoundObject):
         """Called before each request and will ensure that it triggers
         the :attr:`before_first_request_funcs` and only exactly once per
         application instance (which means process usually).
+        在每次请求时调用，确保会触发 `before_first_request_funcs` 一次且仅有一次。
+
+        从实现上来讲，使用了二次加锁的机制。
 
         :internal:
         """
@@ -1835,12 +1854,17 @@ class Flask(_PackageBoundObject):
         """Called before the actual request dispatching and will
         call each :meth:`before_request` decorated function, passing no
         arguments.
+        在真正的请求被分配之前调用，会调用每一个由 `before_request` 装饰的函数，
+        不会传入任何参数。
+
         If any of these functions returns a value, it's handled as
         if it was the return value from the view and further
         request handling is stopped.
+        如果某个函数返回一个值，这个值将会作为 view 的返回值，剩余的请求操作就不会再被处理。
 
         This also triggers the :meth:`url_value_preprocessor` functions before
         the actual :meth:`before_request` functions are called.
+        这个也会在 `before_request` 函数之前调用 `url_value_preprocessor` 函数。
         """
         bp = _request_ctx_stack.top.request.blueprint
 
@@ -1862,10 +1886,13 @@ class Flask(_PackageBoundObject):
         """Can be overridden in order to modify the response object
         before it's sent to the WSGI server.  By default this will
         call all the :meth:`after_request` decorated functions.
+        通过覆盖这个函数，可以修改返回给 WSGI server 的响应对象。默认地，这个函数
+        会调用所有使用 `after_request` 装饰的函数。
 
         .. versionchanged:: 0.5
            As of Flask 0.5 the functions registered for after request
            execution are called in reverse order of registration.
+           所有注册的函数以逆序调用。
 
         :param response: a :attr:`response_class` object.
         :return: a new response object or the same, has to be an
@@ -1876,11 +1903,14 @@ class Flask(_PackageBoundObject):
         funcs = ctx._after_request_functions
         if bp is not None and bp in self.after_request_funcs:
             funcs = chain(funcs, reversed(self.after_request_funcs[bp]))
+            # 调用注册在 bp 下的函数
         if None in self.after_request_funcs:
             funcs = chain(funcs, reversed(self.after_request_funcs[None]))
+            # 将通用 after_request_func 加入到调用链
         for handler in funcs:
             response = handler(response)
         if not self.session_interface.is_null_session(ctx.session):
+            # 完成调用后执行保存 session 的操作
             self.save_session(ctx.session, response)
         return response
 
@@ -1890,10 +1920,13 @@ class Flask(_PackageBoundObject):
         not actually called by the :class:`Flask` object itself but is always
         triggered when the request context is popped.  That way we have a
         tighter control over certain resources under testing environments.
+        在真正的请求完成后调用所有使用  teardown_requset 注册的函数。在 request context pop 后
+        会完成调用。
 
         .. versionchanged:: 0.9
            Added the `exc` argument.  Previously this was always using the
            current exception information.
+           增加了  `exc` 参数，捕获了当前的异常信息。
         """
         if exc is _sentinel:
             exc = sys.exc_info()[1]
@@ -1914,9 +1947,9 @@ class Flask(_PackageBoundObject):
         """
         if exc is _sentinel:
             exc = sys.exc_info()[1]
-        for func in reversed(self.teardown_appcontext_funcs):
+        for func in reversed(self.teardown_appcontext_funcs):   # 调用所有注册的 teardown 函数
             func(exc)
-        appcontext_tearing_down.send(self, exc=exc)
+        appcontext_tearing_down.send(self, exc=exc)             # 发布相关的信号
 
     def app_context(self):
         """Binds the application only.  For as long as the application is bound
