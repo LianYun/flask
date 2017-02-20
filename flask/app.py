@@ -116,9 +116,12 @@ class Flask(_PackageBoundObject):
         up, that debugging information is lost.  (For example it would only
         pick up SQL queries in `yourapplication.app` and not
         `yourapplication.views.frontend`)
-        为什么可以？应用甚至可以以`__name__`启用。但这会让debug比较困难。一般的扩展可以基于你的应用导入的包做一些假设。
-        比如说在Flask-SQLAlchemy中，在debug模式下会查找你应用中引发SQL查询的代码。如果导入的名称没有设定，这些debug信息就会丢失。
-        （比如说他只能找到`yourapplication.app`中的查询，而非`yourapplication.views.frontend`的。
+        为什么可以？应用以`__name__`启用，简化了资源查找过程。但这会让 debug 比较困难。
+        一般的扩展可以基于你的应用导入的包做一些假设。
+        比如说在Flask-SQLAlchemy中，在 debug 模式下会查找你应用中引发 SQL 查询的代码。
+        如果导入的名称设定不正确，这些debug信息就会丢失。
+        （比如说他只能找到  `yourapplication.app`中的查询，而在 `yourapplication.views.frontend`
+        中的则会丢失。
 
     .. versionadded:: 0.7
        The `static_url_path`, `static_folder`, and `template_folder`
@@ -152,11 +155,11 @@ class Flask(_PackageBoundObject):
                           package or module is assumed to be the instance
                           path.
     :param instance_relative_config: if set to ``True`` relative filenames
-      一个替代的实例路径.
                                      for loading the config are assumed to
                                      be relative to the instance path instead
                                      of the application root.
-                                     如果设定为true，将会在instance路径下加载config文件。
+                                     如果设定为true，将会相对于 instance 路径下加载
+                                     config 文件而不是应用的 root。
     :param root_path: Flask by default will automatically calculate the path
                       to the root of the application.  In certain situations
                       this cannot be achieved (for instance if the package
@@ -582,6 +585,7 @@ class Flask(_PackageBoundObject):
         import name is main.  This name is used as a display name when
         Flask needs the name of the application.  It can be set and overridden
         to change the value.
+        应用的名称。
 
         .. versionadded:: 0.8
         """
@@ -596,6 +600,7 @@ class Flask(_PackageBoundObject):
     def propagate_exceptions(self):
         """Returns the value of the ``PROPAGATE_EXCEPTIONS`` configuration
         value in case it's set, otherwise a sensible default is returned.
+        是否重新抛出未被业务捕获的异常。如果是 testing 和 debug 环境下，默认是抛出的。
 
         .. versionadded:: 0.7
         """
@@ -674,6 +679,7 @@ class Flask(_PackageBoundObject):
         constructor of the application class.  It will basically calculate
         the path to a folder named ``instance`` next to your main file or
         the package.
+        找到 instance 路径。
 
         .. versionadded:: 0.8
         """
@@ -802,22 +808,28 @@ class Flask(_PackageBoundObject):
 
     def run(self, host=None, port=None, debug=None, **options):
         """Runs the application on a local development server.
+        在一个本地开发 server 上运行应用。
 
         Do not use ``run()`` in a production setting. It is not intended to
         meet security and performance requirements for a production server.
         Instead, see :ref:`deployment` for WSGI server recommendations.
+        不要在线上环境运行 run() 方法。
 
         If the :attr:`debug` flag is set the server will automatically reload
         for code changes and show a debugger in case an exception happened.
+        如果处于 debug 状态，服务器会自动探测代码更改，在遇到 exception 时，展示
+        debug 状态。
 
         If you want to run the application in debug mode, but disable the
         code execution on the interactive debugger, you can pass
         ``use_evalex=False`` as parameter.  This will keep the debugger's
         traceback screen active, but disable code execution.
+        设置 user_evalex 使得 debugger 路径跟踪显示激活，但是使得代码不执行。
 
         It is not recommended to use this function for development with
         automatic reloading as this is badly supported.  Instead you should
         be using the :command:`flask` command line script's ``run`` support.
+        自动重载时不推荐。
 
         .. admonition:: Keep in Mind
 
@@ -876,6 +888,7 @@ class Flask(_PackageBoundObject):
     def test_client(self, use_cookies=True, **kwargs):
         """Creates a test client for this application.  For information
         about unit testing head over to :ref:`testing`.
+        为应用创建一个用于测试的的 client。
 
         Note that if you are testing for assertions or exceptions in your
         application code, you must set ``app.testing = True`` in order for the
@@ -1534,6 +1547,8 @@ class Flask(_PackageBoundObject):
         this function to the :meth:`handle_http_exception` method.  This
         function will either return a response value or reraise the
         exception with the same traceback.
+        这个方法会在一个异常需要被处理时调用，个人感觉更偏重于业务逻辑层(相对于
+        handle_exception)。
 
         .. versionadded:: 0.7
         """
@@ -1560,6 +1575,8 @@ class Flask(_PackageBoundObject):
         be re-raised immediately, otherwise it is logged and the handler
         for a 500 internal server error is used.  If no such handler
         exists, a default 500 internal server error message is displayed.
+        默认的异常处理，处理没有捕获的异常，在 debug 模式下，这些异常会被重新抛出，
+        其他情况下，这些异常会被捕获并使用 500 服务器错误。
 
         .. versionadded:: 0.3
         """
@@ -1588,6 +1605,7 @@ class Flask(_PackageBoundObject):
         if debugging is disabled and right before the handler is called.
         The default implementation logs the exception as error on the
         :attr:`logger`.
+        在 exception 的 handler 被调用之前，调用这个函数记录异常。
 
         .. versionadded:: 0.8
         """

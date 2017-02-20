@@ -57,7 +57,7 @@ def create_logger(app):
     function also removes all attached handlers in case there was a
     logger with the log name before.
 
-    给给定的 app 创建一个 logger。这个 logger 和正常的 Python logger 类似，但是
+    给 app 创建一个 logger。这个 logger 和正常的 Python logger 类似，但是
     会根据应用的调试标记改变日志记录的级别。这个函数也会移除所有相关的 handlers，避
     免已经有一个 logger 有相同的名字。
     """

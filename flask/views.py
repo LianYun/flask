@@ -83,8 +83,8 @@ class View(object):
         with the routing system.  Internally this generates a function on the
         fly which will instantiate the :class:`View` on each request and call
         the :meth:`dispatch_request` method on it.
-        将这个类转化为一个可被路由系统使用的视图函数。实际上，是构建了一个函数，将会在每次请求时构建一个 View，并且调用
-        :meth:`dispatch_request` 方法。
+        将这个类转化为一个可被路由系统使用的视图函数。实际上，是构建了一个函数，将
+        会在每次请求时构建一个 View，并且调用 :meth:`dispatch_request` 方法。
 
         The arguments passed to :meth:`as_view` are forwarded to the
         constructor of the class.
@@ -105,7 +105,8 @@ class View(object):
         # view this thing came from, secondly it's also used for instantiating
         # the view class so you can actually replace it with something else
         # for testing purposes and debugging.
-        # 将这个类和返回的视图函数绑定起来，有助于我们找到生成的类。也可以用于实例化视图函数，可以在实际使用时进行替换，用于测试和debug。
+        # 将这个类和返回的视图函数绑定起来，有助于我们找到生成的类。
+        # 也可以用于实例化视图函数，可以在实际使用时进行替换，用于测试和debug。
         view.view_class = cls
         view.__name__ = name
         view.__doc__ = cls.__doc__
