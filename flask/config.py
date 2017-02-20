@@ -41,11 +41,14 @@ class Config(dict):
     """Works exactly like a dict but provides ways to fill it from files
     or special dictionaries.  There are two common patterns to populate the
     config.
+    和字典的表现类似，但是提供了从文件和特殊的字典填充的方法，有两种常见的配置方法如下：
 
+    直接从文件配置。
     Either you can fill the config from a config file::
 
         app.config.from_pyfile('yourconfig.cfg')
 
+    从对象配置。
     Or alternatively you can define the configuration options in the
     module that calls :meth:`from_object` or provide an import path to
     a module that should be loaded.  It is also possible to tell it to
@@ -56,17 +59,20 @@ class Config(dict):
         SECRET_KEY = 'development key'
         app.config.from_object(__name__)
 
+    只有大写的 key 会增加到配置文件中。
     In both cases (loading from any Python file or loading from modules),
     only uppercase keys are added to the config.  This makes it possible to use
     lowercase values in the config file for temporary values that are not added
     to the config or to define the config keys in the same file that implements
     the application.
 
+    也可以从环境变量中加载配置文件如下：
     Probably the most interesting way to load configurations is from an
     environment variable pointing to a file::
 
         app.config.from_envvar('YOURAPPLICATION_SETTINGS')
 
+    可以使用环境变量配置如下：
     In this case before launching the application you have to set this
     environment variable to the file you want to use.  On Linux and OS X
     use the export statement::
@@ -221,6 +227,8 @@ class Config(dict):
     def get_namespace(self, namespace, lowercase=True, trim_namespace=True):
         """Returns a dictionary containing a subset of configuration options
         that match the specified namespace/prefix. Example usage::
+        返回字典中保存的配置的子集，这些配置的名称的 namespace 或者 prefix 满足对应
+        的要求。
 
             app.config['IMAGE_STORE_TYPE'] = 'fs'
             app.config['IMAGE_STORE_PATH'] = '/var/app/images'

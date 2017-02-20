@@ -116,7 +116,8 @@ class View(object):
 
 
 class MethodViewType(type):
-    """当python解释器在创建MethodView时，要通过MethodViewType.__new__，因而我们可以在此对类进行修改。
+    """
+    当 python 解释器在创建 MethodView 时，要通过 MethodViewType.__new__，因而我们可以在此对类进行修改。
     """
 
     def __new__(cls, name, bases, d):

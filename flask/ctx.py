@@ -167,7 +167,7 @@ class AppContext(object):
     context is also implicitly created if a request context is created
     but the application is not on top of the individual application
     context.
-    应用上下文将应用对象绑定到当前的县线程或者 greenlet 中，和 :class:`RequestContext`
+    应用上下文将应用对象绑定到当前的线程或者 greenlet 中，和 :class:`RequestContext`
     类似，但是绑定的应用上下文信息。如果在创建 request context 时没有 app context，那么 app context
     会被自动创建。
     """

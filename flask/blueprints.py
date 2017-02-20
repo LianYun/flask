@@ -111,6 +111,8 @@ class Blueprint(_PackageBoundObject):
         registered on the application.  This function is called with the
         state as argument as returned by the :meth:`make_setup_state`
         method.
+        注册一个函数，在 blueprint 注册到应用时，会被调用。这些函数会被 `make_setup_state`
+        返回的 state 作为参数来调用。
         """
         if self._got_registered_once and self.warn_on_modifications:
             from warnings import warn
@@ -134,6 +136,8 @@ class Blueprint(_PackageBoundObject):
         """Creates an instance of :meth:`~flask.blueprints.BlueprintSetupState`
         object that is later passed to the register callback functions.
         Subclasses can override this to return a subclass of the setup state.
+        创建一个 `~flask.blueprints.BlueprintSetupState` 的实例，这个对象会随后传递
+        给注册的 register 函数，Subclasses 可以覆盖这个来返回自定义的 state。
         """
         return BlueprintSetupState(self, app, options, first_registration)
 
@@ -143,6 +147,8 @@ class Blueprint(_PackageBoundObject):
         behavior.  Keyword arguments from
         :func:`~flask.Flask.register_blueprint` are directly forwarded to this
         method in the `options` dictionary.
+        由 `Flask.register_blueprint` 在注册这个 blueprint 时调用。可以通过覆盖
+        这个类来自定义注册的行为。
         """
         self._got_registered_once = True
         state = self.make_setup_state(app, options, first_registration)
@@ -392,6 +398,7 @@ class Blueprint(_PackageBoundObject):
         a blueprint unless it is caused inside a view function.  Another
         special case is the 500 internal server error which is always looked
         up from the application.
+        给指定的 blueprint 注册一个错误处理函数。
 
         Otherwise works as the :meth:`~flask.Flask.errorhandler` decorator
         of the :class:`~flask.Flask` object.

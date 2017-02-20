@@ -975,6 +975,7 @@ class Flask(_PackageBoundObject):
     @setupmethod
     def register_blueprint(self, blueprint, **options):
         """Registers a blueprint on the application.
+        在应用上注册一个 blueprint
 
         .. versionadded:: 0.7
         """
@@ -993,6 +994,7 @@ class Flask(_PackageBoundObject):
 
     def iter_blueprints(self):
         """Iterates over all blueprints by the order they were registered.
+        迭代所有 blueprint
 
         .. versionadded:: 0.11
         """
@@ -1003,6 +1005,7 @@ class Flask(_PackageBoundObject):
         """Connects a URL rule.  Works exactly like the :meth:`route`
         decorator.  If a view_func is provided it will be registered with the
         endpoint.
+        连接一个 URL 规则。和方法 `route` 装饰器类似，使 view_func 连接到 endpoint
 
         url_map: url => endpoint
         view_func: endpoint => function
@@ -1020,7 +1023,7 @@ class Flask(_PackageBoundObject):
             app.add_url_rule('/', 'index', index)
 
         If the view_func is not provided you will need to connect the endpoint
-        to a view function like so::
+        to a view function like so (对没有提供 view_func 的需要手动连接):
 
             app.view_functions['index'] = index
 
@@ -1050,8 +1053,11 @@ class Flask(_PackageBoundObject):
                         just listens for ``GET`` (and implicitly ``HEAD``).
                         Starting with Flask 0.6, ``OPTIONS`` is implicitly
                         added and handled by the standard request handling.
+
+                        options 直接传递给 `werkzeug.routing.Rule` 对象。
         """
         if endpoint is None:
+            # 如果没有指定 endpoint，从 view_func 中构建
             endpoint = _endpoint_from_view_func(view_func)
         options['endpoint'] = endpoint
         methods = options.pop('methods', None)
@@ -1060,6 +1066,7 @@ class Flask(_PackageBoundObject):
         # methods we can use that instead.  If neither exists, we go with
         # a tuple of only ``GET`` as default.
         if methods is None:
+            # 注意 methods 可以从 options、view_func 中获得。
             methods = getattr(view_func, 'methods', None) or ('GET',)
         if isinstance(methods, string_types):
             raise TypeError('Allowed methods have to be iterables of strings, '
@@ -1084,9 +1091,11 @@ class Flask(_PackageBoundObject):
         # Add the required methods now.
         methods |= required_methods
 
+        # 构建路由规则
         rule = self.url_rule_class(rule, methods=methods, **options)
         rule.provide_automatic_options = provide_automatic_options
 
+        # 增加规则。并将 view_func 和 endpoint 通过一个 dict 绑定起来
         self.url_map.add(rule)
         if view_func is not None:
             old_func = self.view_functions.get(endpoint)
@@ -1098,7 +1107,8 @@ class Flask(_PackageBoundObject):
     def route(self, rule, **options):
         """A decorator that is used to register a view function for a
         given URL rule.  This does the same thing as :meth:`add_url_rule`
-        but is intended for decorator usage::
+        but is intended for decorator usage (用于将指定的 view 函数绑定
+        到给定 URL 的装饰器，和 `add_url_rule` 完全相同的功能)::
 
             @app.route('/')
             def index():
@@ -1120,7 +1130,7 @@ class Flask(_PackageBoundObject):
                         added and handled by the standard request handling.
         """
         def decorator(f):
-            endpoint = options.pop('endpoint', None)
+            endpoint = options.pop('endpoint', None)    # 注意此处的写法
             self.add_url_rule(rule, endpoint, f, **options)
             return f
         return decorator
@@ -1128,6 +1138,7 @@ class Flask(_PackageBoundObject):
     @setupmethod
     def endpoint(self, endpoint):
         """A decorator to register a function as an endpoint.
+        一个可以将 function 注册到 endpoint 的装饰器。思考可以和 add_url_rule 结合使用。
         Example::
 
             @app.endpoint('example.endpoint')
@@ -1159,7 +1170,7 @@ class Flask(_PackageBoundObject):
     @setupmethod
     def errorhandler(self, code_or_exception):
         """A decorator that is used to register a function given an
-        error code.  Example::
+        error code. 给指定的错误码或者异常注册一个函数。 Example::
 
             @app.errorhandler(404)
             def page_not_found(error):
@@ -1173,7 +1184,7 @@ class Flask(_PackageBoundObject):
 
         You can also register a function as error handler without using
         the :meth:`errorhandler` decorator.  The following example is
-        equivalent to the one above::
+        equivalent to the one above (也可以使用另外的注册方法如下)::
 
             def page_not_found(error):
                 return 'This page does not exist', 404
@@ -1182,9 +1193,11 @@ class Flask(_PackageBoundObject):
         Setting error handlers via assignments to :attr:`error_handler_spec`
         however is discouraged as it requires fiddling with nested dictionaries
         and the special case for arbitrary exception types.
+        直接修改注册结果字典的方式不推荐。
 
         The first ``None`` refers to the active blueprint.  If the error
         handler should be application wide ``None`` shall be used.
+        错误处理和 blueprint 是相联系的。
 
         .. versionadded:: 0.7
             Use :meth:`register_error_handler` instead of modifying
@@ -1200,6 +1213,7 @@ class Flask(_PackageBoundObject):
                                   an arbitrary exception
         """
         def decorator(f):
+            # 给整个 app 注册错误处理函数使用 None 作为 key。
             self._register_error_handler(None, code_or_exception, f)
             return f
         return decorator
