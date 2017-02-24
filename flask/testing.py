@@ -68,7 +68,8 @@ class FlaskClient(Client):
         session transaction.  This can be used to modify the session that
         the test client uses.  Once the ``with`` block is left the session is
         stored back.
-        当和 with 语句联合使用时，这可以改变测试客户端使用的 session 数据。with 语句结束后，结果会被存储到 session 中。
+        当和 with 语句联合使用时，这可以改变测试客户端使用的 session 数据。
+        with 语句结束后，结果会被存储到 session 中。
         ::
 
             with client.session_transaction() as session:
@@ -103,6 +104,8 @@ class FlaskClient(Client):
             # behavior.  It's important to not use the push and pop
             # methods of the actual request context object since that would
             # mean that cleanup handlers are called
+            # 给 session 打开了一个 request context，使得和调用者之间隔离开来，并将最近的
+            # 的一个 request 压栈到顶上，保持当前的状态。
             _request_ctx_stack.push(outer_reqctx)
             try:
                 yield sess

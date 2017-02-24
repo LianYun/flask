@@ -112,6 +112,7 @@ class View(object):
         view.__doc__ = cls.__doc__
         view.__module__ = cls.__module__
         view.methods = cls.methods
+        # 实际上是用类构建一个函数，将之前的类包装一下传给前端
         return view
 
 

@@ -1767,6 +1767,8 @@ class Flask(_PackageBoundObject):
     def make_response(self, rv):
         """Converts the return value from a view function to a real
         response object that is an instance of :attr:`response_class`.
+        将 view function 的返回值转换为一个真实的 response 对象，这会是一个
+        `response_class` 的实例。
 
         The following types are allowed for `rv`:
 
@@ -1774,18 +1776,26 @@ class Flask(_PackageBoundObject):
 
         ======================= ===========================================
         :attr:`response_class`  the object is returned unchanged
+                                不改变直接返回
         :class:`str`            a response object is created with the
                                 string as body
+                                创建一个 response 对象，并将这个字符串作为 body
+                                对象。
         :class:`unicode`        a response object is created with the
                                 string encoded to utf-8 as body
+                                将字符串首先编码为 utf-8，然后分装为 response 的
+                                body
         a WSGI function         the function is called as WSGI application
                                 and buffered as response object
+                                以 WSGI 的形式调用，作为 response 对象返回
         :class:`tuple`          A tuple in the form ``(response, status,
                                 headers)`` or ``(response, headers)``
                                 where `response` is any of the
                                 types defined here, `status` is a string
                                 or an integer and `headers` is a list or
                                 a dictionary with header values.
+                                一个由 ``(response, headers)`` 或者 ``(response,
+                                status, headers)`` 组成的元组
         ======================= ===========================================
 
         :param rv: the return value from the view function
@@ -2032,6 +2042,8 @@ class Flask(_PackageBoundObject):
         """Creates a WSGI environment from the given values (see
         :class:`werkzeug.test.EnvironBuilder` for more information, this
         function accepts the same arguments).
+        从给定的值创建一个 WSGI 环境，查看 `werkzeug.test.EnvironBuilder` 获取更多
+        信息。
         """
         from flask.testing import make_test_environ_builder
         builder = make_test_environ_builder(self, *args, **kwargs)

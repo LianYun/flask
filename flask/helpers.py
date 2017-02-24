@@ -107,6 +107,7 @@ def stream_with_context(generator_or_function):
                 yield request.args['name']
                 yield '!'
             return Response(stream_with_context(generate()))
+        装饰内容生成器，在 Response 响应返回之前。
 
     .. versionadded:: 0.9
     """
@@ -155,9 +156,11 @@ def make_response(*args):
     is converted into a response object by Flask itself, it becomes tricky to
     add headers to it.  This function can be called instead of using a return
     and you will get a response object which you can use to attach headers.
-    有时候在视图中设定更多的 headers 是有必要的。因为 view 不一定会返回一个响应对象，Flask 应该
-    可以对 view 返回的结果进行处理，转化为对应的对象。
+    有时候在视图中设定更多的 headers 是有必要的。views 并不一定要返回一个 response 对象，
+    而是返回任何可由 Flask 可以转化为 response 对象的对象，这使得增加一些 headers 变得
+    比较有技巧。这个函数可以调用，而不是直接返回。
 
+    在响应中增加头部如下所示
     If view looked like this and you want to add a new header::
 
         def index():
@@ -176,6 +179,8 @@ def make_response(*args):
 
         response = make_response(render_template('not_found.html'), 404)
 
+    另一种使用方法是直接将 view function 的返回结果包装为一个 response，一般放在
+    相关的装饰器中。
     The other use case of this function is to force the return value of a
     view function into a response which is helpful with view
     decorators::
@@ -218,6 +223,11 @@ def url_for(endpoint, **values):
 
     For more information, head over to the :ref:`Quickstart <url-building>`.
 
+    为了集成到 application 上，`Flask` 有一个钩子 `Flask.url_build_error_handlers` ，
+    拦截 url 构建错误。当当前的 app 没有路径和 value 和 endpoint 对应时，
+    函数 `url_for` 会引发 `~werkzeug.routing.BuildError`。此时 `~flask.current_app`
+    会调用 `~Flask.url_build_error_handlers` 如果这个值不是 ``None``。这个函数或者会返回
+    一个 string，作为 `url_for` 函数的返回结果，或者重新抛出错误.
     To integrate applications, :class:`Flask` has a hook to intercept URL build
     errors through :attr:`Flask.url_build_error_handlers`.  The `url_for`
     function results in a :exc:`~werkzeug.routing.BuildError` when the current
@@ -692,6 +702,7 @@ def send_from_directory(directory, filename, **options):
 def get_root_path(import_name):
     """Returns the path to a package or cwd if that cannot be found.  This
     returns the path of a package or the folder that contains a module.
+    返回 package 的 path 或者 cwd。
 
     Not to be confused with the package path returned by :func:`find_package`.
     """
@@ -765,6 +776,7 @@ def find_package(import_name):
     have to be added to the pythonpath in order to make it possible to
     import the module.  The prefix is the path below which a UNIX like
     folder structure exists (lib, share etc.).
+    返回 prefix 和包括 package 的 folder
     """
     root_mod_name = import_name.split('.')[0]
     loader = pkgutil.get_loader(root_mod_name)
@@ -819,6 +831,7 @@ class locked_cached_property(object):
     and then that calculated result is used the next time you access
     the value.  Works like the one in Werkzeug but has a lock for
     thread safety.
+    将一个函数转化为一个 lazy 的属性。
     """
 
     def __init__(self, func, name=None, doc=None):
@@ -829,6 +842,7 @@ class locked_cached_property(object):
         self.lock = RLock()
 
     def __get__(self, obj, type=None):
+        """定义了这个方法使得这个类的对象表现得类似一个属性。"""
         if obj is None:
             return self
         with self.lock:
