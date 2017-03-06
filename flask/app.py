@@ -990,6 +990,7 @@ class Flask(_PackageBoundObject):
             self.blueprints[blueprint.name] = blueprint
             self._blueprint_order.append(blueprint)
             first_registration = True
+        # 回调 blueprint 的 register 方法，实现依赖倒置
         blueprint.register(self, options, first_registration)
 
     def iter_blueprints(self):

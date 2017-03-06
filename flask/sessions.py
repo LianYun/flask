@@ -120,6 +120,7 @@ class SecureCookieSession(CallbackDict, SessionMixin):
     def __init__(self, initial=None):
         def on_update(self):
             self.modified = True
+        # 若改变将 self.modified 设置为 True
         CallbackDict.__init__(self, initial, on_update)
         self.modified = False
 
@@ -198,8 +199,11 @@ class SessionInterface(object):
         null session is to still support lookup without complaining but
         modifications are answered with a helpful error message of what
         failed.
+        创建一个 null session，如果真正的 session 因为配置不能加载，则使用这个
+        session 作为占位符。
 
         This creates an instance of :attr:`null_session_class` by default.
+        会默认创建一个 `null_session_class` 的实例。
         """
         return self.null_session_class()
 
@@ -215,6 +219,7 @@ class SessionInterface(object):
     def get_cookie_domain(self, app):
         """Helpful helper method that returns the cookie domain that should
         be used for the session cookie if session cookies are used.
+        返回 cookie domain 的帮助方法。
         """
         if app.config['SESSION_COOKIE_DOMAIN'] is not None:
             return app.config['SESSION_COOKIE_DOMAIN']
@@ -277,6 +282,8 @@ class SessionInterface(object):
         it's set to ``False`` then a cookie is only set if the session is
         modified, if set to ``True`` it's always set if the session is
         permanent.
+        如果 session 被修改了，那么进行更新
+        如果设置每次请求更新 session 那么也对 session  进行更新。
 
         This check is usually skipped if sessions get deleted.
 
@@ -337,6 +344,14 @@ class SecureCookieSessionInterface(SessionInterface):
                                       signer_kwargs=signer_kwargs)
 
     def open_session(self, app, request):
+        """
+        1. 获取 cookie 解析器 -> URLSafeTimedSerializer
+        2. 从 request 中获取 cookie， 没有 cookie 则返回空的 session
+        3. 否则使用解析出的 data 构建一个 session
+        :param app:
+        :param request:
+        :return:
+        """
         s = self.get_signing_serializer(app)
         if s is None:
             return None
@@ -351,6 +366,16 @@ class SecureCookieSessionInterface(SessionInterface):
             return self.session_class()             # loads 失败也会返回空的 Session
 
     def save_session(self, app, session, response):
+        """
+        1. 获得当前 session 所在的 domain
+        2. 获取当前 session 所在的 path
+        3. 如果 session 已经被修改了，则 在 response 中先删除
+        4. 满足更新条件，使用 httponly、secure、expires、val 进行更新
+        :param app:
+        :param session:
+        :param response:
+        :return:
+        """
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
 

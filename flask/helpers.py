@@ -83,7 +83,8 @@ def stream_with_context(generator_or_function):
     内存泄露，这个函数的使用会降低这种情况的可能性。这个函数会导致生成器不能够再访问任何请求
     的信息边界。
 
-    This function however can help you keep the context around for longer::
+    This function however can help you keep the context around for longer
+    这个函数可以帮助你更长得保持上下文::
 
         from flask import stream_with_context, request, Response
 
@@ -96,7 +97,8 @@ def stream_with_context(generator_or_function):
                 yield '!'
             return Response(generate())
 
-    Alternatively it can also be used around a specific generator::
+    Alternatively it can also be used around a specific generator
+    也可以直接包装特定的装饰器::
 
         from flask import stream_with_context, request, Response
 
@@ -363,6 +365,7 @@ def get_template_attribute(template_name, attribute):
     """Loads a macro (or variable) a template exports.  This can be used to
     invoke a macro from within Python code.  If you for example have a
     template named :file:`_cider.html` with the following contents:
+    加载宏（或者变量）的模板导出。可以用于从 python 代码中激活一个 macro。
 
     .. sourcecode:: html+jinja
 
@@ -386,6 +389,8 @@ def flash(message, category='message'):
     """Flashes a message to the next request.  In order to remove the
     flashed message from the session and to display it to the user,
     the template has to call :func:`get_flashed_messages`.
+    向下一个请求反射一条消息。为了从 session 中删除 flashed 的消息，模板必须调用
+    `get_flash_messages` 方法。
 
     .. versionchanged:: 0.3
        `category` parameter added.
@@ -459,19 +464,29 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
     you can set the application's :attr:`~Flask.use_x_sendfile` attribute
     to ``True`` to directly emit an ``X-Sendfile`` header.  This however
     requires support of the underlying webserver for ``X-Sendfile``.
+    向客户端发送一个文件的内容。这个将会使用最高效的可用、配置的方法。默认地他会尝试使用
+    WSGI 服务器的 file_wrapper 支持。你也可以通过设置 `Flask.user_x_sendfile` 属性
+    来直接发送一个 ``X-Sendfile`` 头。
 
     By default it will try to guess the mimetype for you, but you can
     also explicitly provide one.  For extra security you probably want
     to send certain files as attachment (HTML for instance).  The mimetype
     guessing requires a `filename` or an `attachment_filename` to be
     provided.
+    默认地，它会猜测 mimetype，但是你也可以明确地指定一个。为了额外的安全，你或者需要
+    发送一些常见的文件作为附件。猜测 mimetype 需要 `filename` 和 `attachment_filename`
+    来提供。
 
     ETags will also be attached automatically if a `filename` is provided. You
     can turn this off by setting `add_etags=False`.
+    ETags 也会自动的设置，如果提供了 `filename`，可以使用 `add_etags=False` 来设置这个。
 
     If `conditional=True` and `filename` is provided, this method will try to
     upgrade the response stream to support range requests.  This will allow
     the request to be answered with partial content response.
+    如果设置 `conditional=True` 和 `filename`，方法将会尝试升级 response  stream，来支持
+    范围查询。将会以部分内容响应 request。
+
 
     Please never pass filenames to this function from user sources;
     you should use :func:`send_from_directory` instead.
@@ -831,7 +846,10 @@ class locked_cached_property(object):
     and then that calculated result is used the next time you access
     the value.  Works like the one in Werkzeug but has a lock for
     thread safety.
-    将一个函数转化为一个 lazy 的属性。
+    将一个函数转化为一个 lazy 属性的装饰器。
+    由这个函数装饰的函数会在第一次调用时进行求值，然后将值保存下来，以后使用直接给出。
+
+    惰性求值
     """
 
     def __init__(self, func, name=None, doc=None):

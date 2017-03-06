@@ -4,6 +4,7 @@
     ~~~~~~~~~~~~~~~~~~
 
     Various helpers to make the development experience better.
+    提升开发体验。
 
     :copyright: (c) 2015 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
@@ -20,6 +21,7 @@ from .globals import _request_ctx_stack
 class UnexpectedUnicodeError(AssertionError, UnicodeError):
     """Raised in places where we want some better error reporting for
     unexpected unicode or binary data.
+
     """
 
 
@@ -51,6 +53,8 @@ class FormDataRoutingRedirect(AssertionError):
     """This exception is raised by Flask in debug mode if it detects a
     redirect caused by the routing system when the request method is not
     GET, HEAD or OPTIONS.  Reasoning: form data will be dropped.
+    Flask 会在 debug 模式下产生这个异常，如果他发现阐述了 redirect，但是不是 GET
+    HEAD 或者 OPTIONS 方法时。
     """
 
     def __init__(self, request):
@@ -111,7 +115,9 @@ def _dump_loader_info(loader):
 
 
 def explain_template_loading_attempts(app, template, attempts):
-    """This should help developers understand what failed"""
+    """This should help developers understand what failed
+    模板渲染失败的原因
+    """
     info = ['Locating template "%s":' % template]
     total_found = 0
     blueprint = None

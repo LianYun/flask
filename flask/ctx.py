@@ -72,6 +72,7 @@ def after_this_request(f):
     This is more useful if a function other than the view function wants to
     modify a response.  For instance think of a decorator that wants to add
     some headers without converting the return value into a response object.
+    这个主要用于一些其他的函数需要修改 response 时。
 
     .. versionadded:: 0.9
     """
@@ -85,7 +86,7 @@ def copy_current_request_context(f):
     the function is decorated a copy of the request context is created and
     then pushed when the function is called.
     一个可以装饰函数可以保持住当前请求上下文。这在使用 greenlets 时非常有用。在函数被装饰的时候，
-    一个请求的上下文对象呗创建，当函数被调用时，这个上下文对象会被 push 出来。
+    一个请求的上下文对象创建，当函数被调用时，这个上下文对象会被 push 出来。
 
     Example::
 
@@ -233,7 +234,8 @@ class RequestContext(object):
     When the request context is popped, it will evaluate all the
     functions registered on the application for teardown execution
     (:meth:`~flask.Flask.teardown_request`).
-    当请求上下文被 pop 后，他将会求值所有注册在 application 上的 teardown 函数。(:meth:`~flask.Flask.teardown_request`).
+    当请求上下文被 pop 后，他将会求值所有注册在 application 上的 teardown 函数。
+    (:meth:`~flask.Flask.teardown_request`).
 
 
     The request context is automatically popped at the end of the request
@@ -246,7 +248,7 @@ class RequestContext(object):
     the :meth:`~flask.Flask.test_client` for example to implement the
     deferred cleanup functionality.
     在 debug 时，需要 request context 延迟进行清理，以定位错误。
-    这时候可以使用 flask.test_client
+    这时候可以使用 flask.test_client。
 
     You might find this helpful for unittests where you need the
     information from the context local around for a little longer.  Make
